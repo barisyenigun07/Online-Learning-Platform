@@ -62,11 +62,17 @@ const UserProfile = () => {
         {user?.role === "STUDENT" ? (
             <div>
                 <h3 className="text-4xl text-center">Enrolled Courses</h3>
-                <div className="grid grid-cols-4 gap-10 mt-10">
-                    {enrolledCourses.map((course) => (
-                        <CourseCard key={course.id} course={course}/>
-                    ))}
-                </div>
+                {enrolledCourses.length === 0 ? (
+                    <div className="flex justify-center mt-12">
+                        <p className="text-2xl font-semibold">No enrolled courses yet!</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-4 gap-10 mt-10">
+                        {enrolledCourses.map((course) => (
+                            <CourseCard key={course.id} course={course}/>
+                        ))}
+                    </div>
+                )}
             </div>
         ) : user?.role === "INSTRUCTOR" ? (
             <div className="mt-7">

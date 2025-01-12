@@ -24,7 +24,7 @@ public abstract class Content {
     private Long id;
     @Column(name = "title")
     private String title;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "section_id")
     @JsonIgnoreProperties({"contents"})
     private Section section;

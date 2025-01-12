@@ -1,7 +1,9 @@
 import { ContentType } from "./Content";
+import { SectionCourse } from "./SectionCourse";
 
 export interface Section {
     id: number,
     title: string,
-    contents: ContentType[]
+    contents: ContentType[],
+    course?: SectionCourse
 }

@@ -22,6 +22,10 @@ const Home = () => {
         <h3 className="text-6xl font-bold ml-10">
           {isLoggedIn ? `Welcome, ${authUser.name}!` : ""}
         </h3>
+        <div className="mt-10">
+          <h3 className="text-4xl font-semibold">Available Courses</h3>
+        </div>
+        <hr />
         <div className="grid grid-cols-5 gap-20 mt-10 p-5">
             {courses.map((course) => (
               <CourseCard key={course.id} course={course}/>

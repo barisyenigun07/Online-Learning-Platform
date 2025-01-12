@@ -3,10 +3,8 @@ package com.olp.backend.controller;
 import com.olp.backend.entity.Assignment;
 import com.olp.backend.entity.Content;
 import com.olp.backend.entity.Quiz;
-import com.olp.backend.entity.Video;
 import com.olp.backend.service.ContentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,8 +21,13 @@ public class ContentController {
     }
 
     @PostMapping("/video/section/{sectionId}")
-    public void createVideo(@PathVariable Long sectionId, @RequestParam MultipartFile file, @RequestBody Video video) {
-        contentService.createVideo(sectionId, file, video);
+    public void createVideo(@PathVariable Long sectionId, @RequestParam MultipartFile file, @RequestParam String title) {
+        contentService.createVideo(sectionId, file, title);
+    }
+
+    @GetMapping("/video/content")
+    public byte[] getVideoContent(@RequestParam("filename") String filename) {
+        return contentService.getVideoContent(filename);
     }
 
     @PostMapping("/quiz/section/{sectionId}")

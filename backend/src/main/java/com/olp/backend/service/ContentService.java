@@ -3,17 +3,18 @@ package com.olp.backend.service;
 import com.olp.backend.entity.*;
 import com.olp.backend.exception.ResourceNotFoundException;
 import com.olp.backend.exception.ResourceType;
-import com.olp.backend.repository.AssignmentRepository;
-import com.olp.backend.repository.QuizRepository;
-import com.olp.backend.repository.SectionRepository;
-import com.olp.backend.repository.VideoRepository;
+import com.olp.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -26,7 +27,8 @@ public class ContentService {
     private final AssignmentRepository assignmentRepository;
     private final SectionRepository sectionRepository;
 
-    private String uploadDir = "";
+    @Value("${upload.directory}")
+    private String uploadDir;
 
 
     @Autowired
@@ -37,21 +39,33 @@ public class ContentService {
         this.sectionRepository = sectionRepository;
     }
 
-    public void createVideo(Long sectionId, MultipartFile file, Video video) {
+    public void createVideo(Long sectionId, MultipartFile file, String title) {
         Section section = sectionRepository.findById(sectionId).orElseThrow(() -> new ResourceNotFoundException(ResourceType.SECTION));
+        Video video = new Video();
 
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Video should not be empty");
         }
 
-        try (InputStream inputStream = file.getInputStream()) {
-            Files.copy(inputStream, Paths.get(uploadDir), StandardCopyOption.REPLACE_EXISTING);
-            String fileUrl = "http://localhost:8080/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
-            video.setUrl(fileUrl);
+        try {
+            Path directoryPath = Paths.get(uploadDir);
+
+            if (!Files.exists(directoryPath)) {
+                Files.createDirectories(directoryPath);
+            }
+
+            String filename = UUID.randomUUID() + "-" + file.getOriginalFilename();
+            Path filePath = directoryPath.resolve(filename);
+
+            try (InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+            video.setUrl(filename);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload!");
         }
-        catch (Exception e) {
-            System.out.println("Error!");
-        }
+
+        video.setTitle(title);
         video.setSection(section);
         videoRepository.save(video);
     }
@@ -59,6 +73,11 @@ public class ContentService {
     public void createQuiz(Long sectionId, Quiz quiz) {
         Section section = sectionRepository.findById(sectionId).orElseThrow(() -> new ResourceNotFoundException(ResourceType.SECTION));
         quiz.setSection(section);
+        if (quiz.getQuestions() != null) {
+            for (Question question : quiz.getQuestions()) {
+                question.setQuiz(quiz);
+            }
+        }
         quizRepository.save(quiz);
     }
 
@@ -73,8 +92,16 @@ public class ContentService {
         return section.getContents();
     }
 
-    public byte[] getVideoContent() {
-        return null;
+    public byte[] getVideoContent(String filename) {
+        try {
+            Path filePath = Paths.get(uploadDir).resolve(filename);
+            if (!Files.exists(filePath)) {
+                throw new ResourceNotFoundException(ResourceType.CONTENT);
+            }
+            return Files.readAllBytes(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Content getContent(Long id) {

@@ -8,6 +8,7 @@ import UserProfile from './pages/UserProfile'
 import CourseDetail from './pages/CourseDetail'
 import CreateCourse from './pages/CreateCourse'
 import CreateSection from './pages/CreateSection'
+import CreateContent from './pages/CreateContent'
 
 function App() {
 
@@ -23,6 +24,7 @@ function App() {
           <Route path='/course/:id' element={<CourseDetail/>}/>
           <Route path='/create/course' element={<CreateCourse/>}/>
           <Route path='/create/section/course/:id' element={<CreateSection/>}/>
+          <Route path='/create/content/section/:id' element={<CreateContent/>}/>
         </Routes>
       </BrowserRouter>
     </>

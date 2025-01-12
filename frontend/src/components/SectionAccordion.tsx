@@ -1,8 +1,13 @@
 import React, { useState } from 'react'
 import { Section } from '../models/Section'
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { useNavigate } from 'react-router';
 
 const SectionAccordion = ({sections}: {sections: Section[]}) => {
+    const navigate = useNavigate();
     const [activeIndex, setActiveIndex] = useState(null);
+    const { isLoggedIn, authUser } = useSelector((state: RootState) => state.auth);
 
     const handleAccordionClick = (index) => {
         setActiveIndex(activeIndex === index ? null : index);
@@ -24,12 +29,22 @@ const SectionAccordion = ({sections}: {sections: Section[]}) => {
           </div>
           {/* Content List */}
           {activeIndex === index && (
-            <div className="p-4 bg-white">
+            <div className="bg-white mt-2 p-3">
               {section.contents.map((content) => (
-                <p key={content.id} className="text-gray-700 py-1">
-                  {content.title}
-                </p>
+                <div key={content.id} className="hover:bg-gray-300 p-1">
+                  <p className="text-gray-700">
+                    {content.title}
+                  </p>
+                </div>
               ))}
+              {isLoggedIn && authUser.role === "INSTRUCTOR" && authUser.id === section.course?.user.id ?
+              <div className="flex justify-center mt-1">
+                <button onClick={() => navigate(`/create/content/section/${section.id}`)} className="bg-red-700 hover:bg-red-900 w-44 p-2 text-white rounded-full">
+                  Create Content
+                </button> 
+              </div> 
+              : null
+              }
             </div>
           )}
         </div>
