@@ -3,8 +3,9 @@ import { Section } from '../models/Section'
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { useNavigate } from 'react-router';
+import { ContentType } from '../models/Content';
 
-const SectionAccordion = ({sections}: {sections: Section[]}) => {
+const SectionAccordion = ({sections, onContentSelect}: {sections: Section[], onContentSelect?: (contentType: ContentType) => void}) => {
     const navigate = useNavigate();
     const [activeIndex, setActiveIndex] = useState(null);
     const { isLoggedIn, authUser } = useSelector((state: RootState) => state.auth);
@@ -31,7 +32,7 @@ const SectionAccordion = ({sections}: {sections: Section[]}) => {
           {activeIndex === index && (
             <div className="bg-white mt-2 p-3">
               {section.contents.map((content) => (
-                <div key={content.id} className="hover:bg-gray-300 p-1">
+                <div key={content.id} className="hover:bg-gray-300 p-1" onClick={() => onContentSelect?.(content)}>
                   <p className="text-gray-700">
                     {content.title}
                   </p>

@@ -6,5 +6,5 @@ export interface Course {
     title: string,
     description: string,
     user: User,
-    sections: Section[]
+    sections: Section[],
 }

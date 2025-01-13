@@ -5,6 +5,9 @@ import com.olp.backend.entity.Content;
 import com.olp.backend.entity.Quiz;
 import com.olp.backend.service.ContentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,9 +28,9 @@ public class ContentController {
         contentService.createVideo(sectionId, file, title);
     }
 
-    @GetMapping("/video/content")
-    public byte[] getVideoContent(@RequestParam("filename") String filename) {
-        return contentService.getVideoContent(filename);
+    @GetMapping("/video/file")
+    public ResponseEntity<Resource> getVideoContent(@RequestParam("filename") String filename, @RequestHeader(value = "Range", required = false) String rangeHeader) {
+        return contentService.getVideoContent(filename, rangeHeader);
     }
 
     @PostMapping("/quiz/section/{sectionId}")

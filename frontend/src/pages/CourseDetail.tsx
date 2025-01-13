@@ -11,6 +11,8 @@ const CourseDetail = () => {
   const navigate = useNavigate();
 
   const [course, setCourse] = useState<Course>();
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  
 
   const getCourse = async () => {
     try {
@@ -23,11 +25,31 @@ const CourseDetail = () => {
     }
   }
 
+  const checkEnrollment = async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/enroll/course/${id}/is-enrolled`, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      });
+      const data = await response.json();
+      setIsEnrolled(data);
+      }
+     catch (err) {
+      console.error(err);
+    }
+  }
+
   const handleEnroll = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/enroll/course/${id}`);
+      const response = await fetch(`http://localhost:8080/enroll/course/${id}`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      });
       if (response.ok) {
-        navigate("/");
+        navigate(`/course/${id}`);
       }
     }
     catch (err) {
@@ -37,6 +59,9 @@ const CourseDetail = () => {
 
   useEffect(() => {
     getCourse();
+    if (isLoggedIn && authUser.role === "STUDENT") {
+      checkEnrollment();
+    }
   }, [])
 
   return (
@@ -45,13 +70,19 @@ const CourseDetail = () => {
           <h3 className="text-4xl font-bold">{course?.title}</h3>
           <p className="text-xl mt-5">{course?.description}</p>
         </div>
-        {isLoggedIn && authUser.role === "STUDENT" ? 
+        {isLoggedIn && authUser.role === "STUDENT" && !isEnrolled ? 
           <div className="flex justify-center mt-5">
             <button onClick={handleEnroll} className="w-1/3 bg-red-700 hover:bg-red-900 p-2 rounded-full text-white">Enroll</button>
           </div> 
-        : isLoggedIn && authUser.role === "INSTRUCTOR" && authUser.id === course?.user.id ? 
+        :
+        isLoggedIn && authUser.role === "STUDENT" && isEnrolled ?
+        <div className="flex justify-center mt-5">
+          <button onClick={() => navigate(`/course/${id}`)} className="w-1/3 bg-red-700 hover:bg-red-900 p-2 rounded-full text-white">Go To Course</button>
+        </div>
+        :
+        isLoggedIn && authUser.role === "INSTRUCTOR" && authUser.id === course?.user.id ? 
           <div className="flex justify-center mt-5">
-            <button onClick={() => navigate(`/create/section/course/${course.id}`)} className="w-1/3 bg-red-700 hover:bg-red-900 p-2 rounded-full text-white">Edit</button>
+            <button onClick={() => navigate(`/course/${id}/edit`)} className="w-1/3 bg-red-700 hover:bg-red-900 p-2 rounded-full text-white">Edit</button>
           </div>
           : null
         }

@@ -25,7 +25,7 @@ const CreateContent = () => {
   const [file, setFile] = useState<Blob | undefined>();
   const [questionNumber, setQuestionNumber] = useState(0);
   const [questions, setQuestions] = useState([
-    { questionText: "", options: ["", "", "", ""], correctOption: "" },
+    { text: "", options: ["", "", "", ""], correctOption: "" },
   ])
 
   const handleQuestionChange = (index: number, key: string, value: string) => {
@@ -53,14 +53,15 @@ const CreateContent = () => {
 
     // Create new independent questions for the new number
     const newQuestions = Array.from({ length: num }, () => ({
-      questionText: "",
+      text: "",
       options: ["", "", "", ""],
       correctOption: "",
     }));
     setQuestions(newQuestions);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     switch (contentType) {
       case "video": {
         if (file) {
@@ -71,7 +72,6 @@ const CreateContent = () => {
           const response = await fetch(`http://localhost:8080/content/video/section/${id}`, {
             method: "POST",
             headers: {
-              "Content-Type": "multipart/form-data",
               "Authorization": `Bearer ${localStorage.getItem("token")}`
             },
             body: formData
@@ -104,7 +104,7 @@ const CreateContent = () => {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem("token")}`
           },
-          body: JSON.stringify({title: title, description: description})
+          body: JSON.stringify({title: title, type: "assignment", description: description})
         })
 
         if (response.ok) {
@@ -161,8 +161,8 @@ const CreateContent = () => {
                       className="border-2 border-slate-700 p-1 w-full rounded"
                       type="text"
                       placeholder={`Enter question ${qIndex + 1}`}
-                      value={q.questionText}
-                      onChange={(e) => handleQuestionChange(qIndex, "questionText", e.target.value)}
+                      value={q.text}
+                      onChange={(e) => handleQuestionChange(qIndex, "text", e.target.value)}
                     />
                   </div>
 

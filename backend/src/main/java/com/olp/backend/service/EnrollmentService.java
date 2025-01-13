@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.CheckedInputStream;
 
 @Service
 public class EnrollmentService {
@@ -64,6 +65,12 @@ public class EnrollmentService {
                 .stream()
                 .map(Enrollment::getCourse)
                 .collect(Collectors.toList());
+    }
+
+    public boolean checkEnrollment(Long courseId) {
+        User student = userService.getAuthenticatedUser().orElseThrow(() -> new ResourceNotFoundException(ResourceType.USER));
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException(ResourceType.COURSE));
+        return enrollmentRepository.existsByUserAndCourse(student, course);
     }
 
 

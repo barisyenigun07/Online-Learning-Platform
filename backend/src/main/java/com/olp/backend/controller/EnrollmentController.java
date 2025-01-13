@@ -29,4 +29,9 @@ public class EnrollmentController {
     public List<Course> getCoursesEnrolledByStudent(@PathVariable Long studentId) {
         return enrollmentService.getCoursesEnrolledByStudent(studentId);
     }
+
+    @GetMapping("/course/{courseId}/is-enrolled")
+    public boolean checkEnrollment(@PathVariable("courseId") Long courseId) {
+        return enrollmentService.checkEnrollment(courseId);
+    }
 }

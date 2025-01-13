@@ -6,11 +6,16 @@ import com.olp.backend.exception.ResourceType;
 import com.olp.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -92,15 +97,45 @@ public class ContentService {
         return section.getContents();
     }
 
-    public byte[] getVideoContent(String filename) {
+    public ResponseEntity<Resource> getVideoContent(String filename, String rangeHeader) {
         try {
             Path filePath = Paths.get(uploadDir).resolve(filename);
             if (!Files.exists(filePath)) {
                 throw new ResourceNotFoundException(ResourceType.CONTENT);
             }
-            return Files.readAllBytes(filePath);
+
+            File videoFile = filePath.toFile();
+            long fileLength = videoFile.length();
+
+            // Handle byte-range requests
+            if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+                String[] ranges = rangeHeader.replace("bytes=", "").split("-");
+                long start = Long.parseLong(ranges[0]);
+                long end = ranges.length > 1 ? Long.parseLong(ranges[1]) : fileLength - 1;
+
+                if (end >= fileLength) {
+                    end = fileLength - 1;
+                }
+
+                long contentLength = end - start + 1;
+                InputStream inputStream = new FileInputStream(videoFile);
+                inputStream.skip(start);
+
+                return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                        .contentType(MediaTypeFactory.getMediaType(videoFile.getName()).orElse(MediaType.APPLICATION_OCTET_STREAM))
+                        .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileLength)
+                        .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(contentLength))
+                        .body(new InputStreamResource(inputStream));
+            }
+
+            // Return the entire file if no range is specified
+            return ResponseEntity.ok()
+                    .contentType(MediaTypeFactory.getMediaType(videoFile.getName()).orElse(MediaType.APPLICATION_OCTET_STREAM))
+                    .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileLength))
+                    .body(new InputStreamResource(new FileInputStream(videoFile)));
+
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error reading video file", e);
         }
     }
 
